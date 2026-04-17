@@ -39,7 +39,7 @@ const Orders = () => {
       setOrders(Array.isArray(data) ? data : (data.orders || []));
       setError('');
     } catch (err) {
-      setError('Failed to fetch orders. Check backend connection.');
+      setError(err?.response?.data?.message || err?.message || 'Failed to fetch orders.');
       console.error(err);
     } finally {
       if (!silent) setLoading(false);
@@ -97,10 +97,10 @@ const Orders = () => {
       dataIndex: 'status',
       render: (row) => {
         const id = row._id || row.id;
-        const value = normalizeOrderStatus(row.status);
+      const value = normalizeOrderStatus(row.orderStatus || row.status);
         return (
           <div className="flex items-center gap-3 flex-wrap">
-            {getStatusBadge(row.status)}
+            {getStatusBadge(row.orderStatus || row.status)}
             <select
               value={value}
               onChange={(e) => handleStatusChange(id, e.target.value)}

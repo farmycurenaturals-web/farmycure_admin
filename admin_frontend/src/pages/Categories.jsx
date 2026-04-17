@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Edit2, FolderPlus, Search, Trash2, X } from 'lucide-react';
 import { Table } from '../components/Table';
-import { api } from '../services/api';
+import { api, resolveApiImageUrl } from '../services/api';
 
 const slugify = (value) =>
   String(value || '')
@@ -11,6 +11,14 @@ const slugify = (value) =>
     .replace(/(^-|-$)+/g, '');
 
 const Categories = () => {
+  const getErrorText = (err, fallback) => {
+    const raw = err?.response?.data;
+    if (typeof raw === 'string') {
+      return fallback;
+    }
+    return err?.response?.data?.message || err?.message || fallback;
+  };
+
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +48,7 @@ const Categories = () => {
       setProducts(Array.isArray(productsData) ? productsData : productsData.products || []);
       setError('');
     } catch (err) {
-      setError(err.message || 'Failed to fetch categories');
+      setError(getErrorText(err, 'Failed to fetch categories'));
     } finally {
       setLoading(false);
     }
@@ -101,7 +109,7 @@ const Categories = () => {
       setSuccess('Category created successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setFormError(err.message || 'Failed to create category');
+      setFormError(getErrorText(err, 'Failed to create category'));
     } finally {
       setCreateLoading(false);
     }
@@ -114,7 +122,7 @@ const Categories = () => {
       render: (row) => (
         <div className="flex items-center gap-3">
           {row.image ? (
-            <img src={row.image} alt={row.name} className="w-10 h-10 rounded-md object-cover border border-gray-100" />
+            <img src={resolveApiImageUrl(row.image)} alt={row.name} className="w-10 h-10 rounded-md object-cover border border-gray-100" />
           ) : (
             <div className="w-10 h-10 rounded-md bg-gray-100 border border-gray-100" />
           )}

@@ -4,6 +4,12 @@ import { Table } from '../components/Table';
 import { apiAdmin } from '../services/apiAdmin';
 
 const AdminContact = () => {
+  const getErrorText = (err, fallback) => {
+    const raw = err?.response?.data;
+    if (typeof raw === 'string') return fallback;
+    return err?.response?.data?.message || err?.message || fallback;
+  };
+
   const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,13 +22,16 @@ const AdminContact = () => {
         setRows(Array.isArray(res.data) ? res.data : res.data?.contacts || []);
       } catch (err) {
         const status = err?.response?.status;
-        const msg = err?.response?.data?.message || 'Failed to load contact messages';
+        const msg = getErrorText(err, 'Contact API not available on deployed backend yet.');
         if (status === 401) {
           localStorage.removeItem('farmycure_token');
           localStorage.removeItem('farmycure_refresh_token');
           localStorage.removeItem('farmycure_user');
           navigate('/login', { replace: true });
           return;
+        }
+        if (status === 404) {
+          setRows([]);
         }
         setError(msg);
       } finally {

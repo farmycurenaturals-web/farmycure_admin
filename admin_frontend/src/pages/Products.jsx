@@ -65,7 +65,7 @@ const Products = () => {
       setCategories(Array.isArray(categoryDataResponse) ? categoryDataResponse : categoryDataResponse.categories || []);
       setError('');
     } catch (err) {
-      setError('Failed to fetch products/categories. Check backend connection.');
+      setError(err?.response?.data?.message || err?.message || 'Failed to fetch products/categories.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -272,7 +272,7 @@ const Products = () => {
       await fetchProductsAndCategories();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setFormError(err.message || 'Error saving product');
+      setFormError(err?.response?.data?.message || err?.message || 'Error saving product');
     }
   };
 
@@ -284,8 +284,8 @@ const Products = () => {
         setSuccess('Product deleted successfully!');
         fetchProductsAndCategories();
         setTimeout(() => setSuccess(''), 3000);
-      } catch {
-        setError('Error deleting product');
+      } catch (err) {
+        setError(err?.response?.data?.message || err?.message || 'Error deleting product');
         setTimeout(() => setError(''), 3000);
       }
     }
@@ -321,7 +321,7 @@ const Products = () => {
       setSuccess('Category created successfully!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setCategoryError(err.message || 'Failed to create category');
+      setCategoryError(err?.response?.data?.message || err?.message || 'Failed to create category');
     } finally {
       setCategoryLoading(false);
     }

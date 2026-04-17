@@ -30,7 +30,7 @@ const Dashboard = () => {
 
         // Calculate Revenue (all not Cancelled orders)
         const revenue = orders.reduce((sum, order) => {
-          if (order.status?.toLowerCase() !== 'cancelled') {
+          if ((order.orderStatus || order.status || '').toLowerCase() !== 'cancelled') {
             return sum + Number(order.totalPrice || order.total || 0);
           }
           return sum;
@@ -94,7 +94,7 @@ const Dashboard = () => {
     { 
       title: 'Status', 
       dataIndex: 'status',
-      render: (row) => getStatusBadge(row.status || 'Pending')
+      render: (row) => getStatusBadge(row.orderStatus || row.status || 'Pending')
     }
   ];
 
