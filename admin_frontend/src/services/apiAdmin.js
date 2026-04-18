@@ -1,5 +1,7 @@
 import axios from 'axios';
-const API = import.meta.env.VITE_API_URL;
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const API = rawApiUrl ? (rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl) : '';
+const API_BASE = API || '';
 console.log('API URL:', import.meta.env.VITE_API_URL);
 
 const getAccessToken = () => localStorage.getItem('farmycure_token');
@@ -16,15 +18,15 @@ const refreshAccessToken = async () => {
 
   try {
     if (import.meta.env.DEV) {
-      console.log('Request:', { url: `${API}/api/auth/refresh-token`, data: { refreshToken } });
+      console.log('Request:', { url: `${API_BASE}/api/auth/refresh-token`, data: { refreshToken } });
     }
     const res = await axios.post(
-      `${API}/api/auth/refresh-token`,
+      `${API_BASE}/api/auth/refresh-token`,
       { refreshToken },
       { headers: { 'Content-Type': 'application/json' } }
     );
     if (import.meta.env.DEV) {
-      console.log('Response:', { url: `${API}/api/auth/refresh-token`, status: res.status, data: res.data });
+      console.log('Response:', { url: `${API_BASE}/api/auth/refresh-token`, status: res.status, data: res.data });
     }
 
     const nextToken = res.data?.accessToken || res.data?.token;
@@ -40,7 +42,7 @@ const refreshAccessToken = async () => {
 
 export const apiAdmin = {
   getWithAutoRefresh: async (path) => {
-    const url = path.startsWith('http') ? path : `${API}${path}`;
+    const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
     try {
       if (import.meta.env.DEV) {
         console.log('Request:', { url, method: 'GET' });

@@ -26,6 +26,7 @@ function App() {
           <Route path="trade" element={<AdminTrade />} />
           <Route path="contact" element={<AdminContact />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

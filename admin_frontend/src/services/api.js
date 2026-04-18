@@ -1,6 +1,6 @@
-const API = import.meta.env.VITE_API_URL;
-const BASE_URL = `${API}/api`;
-const LOCAL_CATEGORIES_KEY = 'farmycure_admin_categories_cache';
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const API = rawApiUrl ? (rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl) : '';
+const BASE_URL = API ? `${API}/api` : '/api';
 
 console.log('API URL:', import.meta.env.VITE_API_URL);
 
@@ -11,7 +11,7 @@ const debugLog = (...args) => {
 export const resolveApiImageUrl = (value) => {
   const image = String(value || '').trim();
   if (!image) return '';
-  if (image.startsWith('/uploads')) return `${API}${image}`;
+  if (image.startsWith('/uploads')) return API ? `${API}${image}` : image;
   return image;
 };
 
@@ -30,19 +30,6 @@ const normalizeProduct = (product = {}) => {
     image: resolveApiImageUrl(product.image) || fallbackImage,
     variants,
   };
-};
-
-const readLocalCategories = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(LOCAL_CATEGORIES_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeLocalCategories = (categories) => {
-  localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(categories));
 };
 
 const buildHeaders = (body) => {
@@ -84,7 +71,7 @@ const fetchJson = async (url, init) => {
     const msg = err?.message || String(err);
     if (msg === 'Failed to fetch' || err?.name === 'TypeError') {
       throw new Error(
-        'Cannot reach the API. Verify VITE_API_URL and network access.'
+        'Cannot reach the API service. Ensure backend is running and reachable.'
       );
     }
     throw err;
@@ -101,7 +88,7 @@ const withAutoRefresh = async (input, init = {}) => {
     const msg = err?.message || String(err);
     if (msg === 'Failed to fetch' || err?.name === 'TypeError') {
       throw new Error(
-        'Cannot reach the API. Verify VITE_API_URL and reload this page.'
+        'Cannot reach the API service. Ensure backend is running and reload this page.'
       );
     }
     throw err;
@@ -176,54 +163,29 @@ export const api = {
 
   // Categories
   getCategories: async () => {
-    try {
-      const data = await withAutoRefresh(`${BASE_URL}/categories`);
-      const list = Array.isArray(data) ? data : data?.categories || [];
-      if (list.length) {
-        writeLocalCategories(list);
-      }
-      return list;
-    } catch (err) {
-      if (String(err?.message || '').includes('(404)')) {
-        const products = await api.getProducts().catch(() => []);
-        const derived = [...new Set(products.map((p) => p.category).filter(Boolean))].map((cat) => ({
-          _id: `derived-${cat}`,
-          name: cat,
-          slug: String(cat).toLowerCase().replace(/\s+/g, '-'),
-          categoryCode: String(cat).toLowerCase().replace(/\s+/g, '-'),
-        }));
-        const local = readLocalCategories();
-        return [...derived, ...local];
-      }
-      throw err;
-    }
+    const data = await withAutoRefresh(`${BASE_URL}/categories`);
+    return Array.isArray(data) ? data : data?.categories || [];
   },
 
-  createCategory: async (data) => {
-    try {
-      return await withAutoRefresh(`${BASE_URL}/categories`, {
-        method: 'POST',
-        headers: buildHeaders(data),
-        body: data instanceof FormData ? data : JSON.stringify(data),
-      });
-    } catch (err) {
-      if (String(err?.message || '').includes('(404)')) {
-        const payload = data instanceof FormData ? Object.fromEntries(data.entries()) : data;
-        const localCategory = {
-          _id: `local-${Date.now()}`,
-          name: payload?.name || 'New Category',
-          slug: payload?.slug || String(payload?.name || '').toLowerCase().replace(/\s+/g, '-'),
-          categoryCode: payload?.categoryCode || payload?.slug,
-          description: payload?.description || '',
-          image: resolveApiImageUrl(payload?.image || payload?.imageUrl || ''),
-        };
-        const current = readLocalCategories();
-        writeLocalCategories([localCategory, ...current]);
-        return localCategory;
-      }
-      throw err;
-    }
-  },
+  createCategory: (data) =>
+    withAutoRefresh(`${BASE_URL}/categories`, {
+      method: 'POST',
+      headers: buildHeaders(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    }),
+
+  updateCategory: (id, data) =>
+    withAutoRefresh(`${BASE_URL}/categories/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    }),
+
+  deleteCategory: (id) =>
+    withAutoRefresh(`${BASE_URL}/categories/${id}`, {
+      method: 'DELETE',
+      headers: buildHeaders(),
+    }),
 
   // Orders
   getOrders: () => withAutoRefresh(`${BASE_URL}/orders?scope=all`, { headers: buildHeaders() }),

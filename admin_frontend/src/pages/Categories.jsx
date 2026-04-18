@@ -27,6 +27,7 @@ const Categories = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [createLoading, setCreateLoading] = useState(false);
   const [formError, setFormError] = useState('');
   const [formData, setFormData] = useState({
@@ -100,18 +101,60 @@ const Categories = () => {
       } else {
         payload.append('imageUrl', formData.imageUrl.trim());
       }
-      await api.createCategory(payload);
+      if (editingCategory?._id) {
+        await api.updateCategory(editingCategory._id, payload);
+      } else {
+        await api.createCategory(payload);
+      }
       setShowCreateModal(false);
+      setEditingCategory(null);
       setFormData({ name: '', description: '', imageUrl: '' });
       setSelectedFile(null);
       setPreviewUrl('');
       await fetchData();
-      setSuccess('Category created successfully');
+      setSuccess(editingCategory ? 'Category updated successfully' : 'Category created successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setFormError(getErrorText(err, 'Failed to create category'));
+      setFormError(getErrorText(err, editingCategory ? 'Failed to update category' : 'Failed to create category'));
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const openCreateModal = () => {
+    setEditingCategory(null);
+    setShowCreateModal(true);
+    setFormError('');
+    setFormData({ name: '', description: '', imageUrl: '' });
+    setSelectedFile(null);
+    setPreviewUrl('');
+  };
+
+  const openEditModal = (category) => {
+    setEditingCategory(category);
+    setShowCreateModal(true);
+    setFormError('');
+    setSelectedFile(null);
+    setPreviewUrl(resolveApiImageUrl(category.image || ''));
+    setFormData({
+      name: category.name || '',
+      description: category.description || '',
+      imageUrl: category.image || '',
+    });
+  };
+
+  const handleDeleteCategory = async (category) => {
+    if (!category?._id) return;
+    if (!window.confirm(`Delete category "${category.name}"?`)) return;
+
+    try {
+      await api.deleteCategory(category._id);
+      await fetchData();
+      setSuccess('Category deleted successfully');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(getErrorText(err, 'Failed to delete category'));
+      setTimeout(() => setError(''), 3000);
     }
   };
 
@@ -155,19 +198,19 @@ const Categories = () => {
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: () => (
+      render: (row) => (
         <div className="flex items-center gap-2">
           <button
-            disabled
-            title="Edit needs backend update endpoint"
-            className="p-1.5 text-gray-300 rounded-md cursor-not-allowed"
+            onClick={() => openEditModal(row)}
+            title="Edit category"
+            className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
           >
             <Edit2 size={16} />
           </button>
           <button
-            disabled
-            title="Delete needs backend delete endpoint"
-            className="p-1.5 text-gray-300 rounded-md cursor-not-allowed"
+            onClick={() => handleDeleteCategory(row)}
+            title="Delete category"
+            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
           >
             <Trash2 size={16} />
           </button>
@@ -227,12 +270,7 @@ const Categories = () => {
             />
           </div>
           <button
-            onClick={() => {
-              setShowCreateModal(true);
-              setFormError('');
-              setSelectedFile(null);
-              setPreviewUrl('');
-            }}
+            onClick={openCreateModal}
             className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
           >
             <FolderPlus size={16} />
@@ -257,11 +295,14 @@ const Categories = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">Create Category</h2>
+              <h2 className="text-lg font-bold text-gray-900">
+                {editingCategory ? 'Edit Category' : 'Create Category'}
+              </h2>
               <button
                 type="button"
                 onClick={() => {
                   setShowCreateModal(false);
+                  setEditingCategory(null);
                   setSelectedFile(null);
                   setPreviewUrl('');
                 }}
@@ -334,6 +375,7 @@ const Categories = () => {
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
+                    setEditingCategory(null);
                     setSelectedFile(null);
                     setPreviewUrl('');
                   }}
@@ -346,7 +388,9 @@ const Categories = () => {
                   disabled={createLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors cursor-pointer"
                 >
-                  {createLoading ? 'Creating...' : 'Create Category'}
+                  {createLoading
+                    ? (editingCategory ? 'Saving...' : 'Creating...')
+                    : (editingCategory ? 'Save Changes' : 'Create Category')}
                 </button>
               </div>
             </form>

@@ -1,0 +1,6 @@
+# Repo root (paths under admin_frontend/)
+admin_frontend/node_modules/
+admin_frontend/dist/
+admin_frontend/.vite/
+admin_frontend/.env
+admin_frontend/.env.local
