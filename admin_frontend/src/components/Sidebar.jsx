@@ -16,11 +16,12 @@ const Sidebar = () => {
     <aside className="w-[240px] bg-white border-r border-gray-100 flex-shrink-0 fixed left-0 top-0 h-screen flex flex-col z-20">
       {/* Logo Area */}
       <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg leading-none">F</span>
-          </div>
-          <span className="font-semibold text-gray-900 text-lg tracking-tight">FarmyCure</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <img
+            src="/farmycure-logo.png"
+            alt="FarmyCure"
+            className="h-10 w-auto rounded-md border border-green-100 bg-white p-0.5"
+          />
         </div>
       </div>
 

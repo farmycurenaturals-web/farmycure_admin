@@ -125,7 +125,12 @@ const Topbar = () => {
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 sticky top-0 z-10 w-full flex items-center justify-between px-6 lg:px-8">
-      <div className="flex-1 max-w-md">
+      <div className="flex items-center gap-4 flex-1 max-w-md">
+        <img
+          src="/farmycure-logo.png"
+          alt="FarmyCure"
+          className="h-8 w-auto rounded-md border border-green-100 bg-white p-0.5 hidden sm:block"
+        />
         <div className="relative">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
             <Search size={18} className="text-gray-400" />
