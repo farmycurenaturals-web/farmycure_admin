@@ -24,9 +24,9 @@ const AdminTrade = () => {
         const status = err?.response?.status;
         const msg = getErrorText(err, 'Trade API not available on deployed backend yet.');
         if (status === 401) {
-          localStorage.removeItem('farmycure_token');
-          localStorage.removeItem('farmycure_refresh_token');
-          localStorage.removeItem('farmycure_user');
+          sessionStorage.removeItem('farmycure_token');
+          sessionStorage.removeItem('farmycure_refresh_token');
+          sessionStorage.removeItem('farmycure_user');
           navigate('/login', { replace: true });
           return;
         }

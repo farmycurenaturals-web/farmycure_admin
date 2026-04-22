@@ -145,11 +145,11 @@ const Categories = () => {
 
   const handleDeleteCategory = async (category) => {
     if (!category?._id) return;
-    if (!window.confirm(`Delete category "${category.name}"?`)) return;
+    if (!window.confirm('Are you sure you want to delete?')) return;
 
     try {
       await api.deleteCategory(category._id);
-      await fetchData();
+      setCategories((prev) => prev.filter((item) => item._id !== category._id));
       setSuccess('Category deleted successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {

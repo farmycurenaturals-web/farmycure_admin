@@ -278,16 +278,15 @@ const Products = () => {
 
   // Delete product
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await api.deleteProduct(id);
-        setSuccess('Product deleted successfully!');
-        fetchProductsAndCategories();
-        setTimeout(() => setSuccess(''), 3000);
-      } catch (err) {
-        setError(err?.response?.data?.message || err?.message || 'Error deleting product');
-        setTimeout(() => setError(''), 3000);
-      }
+    if (!window.confirm('Are you sure you want to delete?')) return;
+    try {
+      await api.deleteProduct(id);
+      setProducts((prev) => prev.filter((item) => (item._id || item.id) !== id));
+      setSuccess('Product deleted successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Error deleting product');
+      setTimeout(() => setError(''), 3000);
     }
   };
 

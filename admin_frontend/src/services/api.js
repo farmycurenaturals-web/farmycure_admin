@@ -7,6 +7,7 @@ console.log('API URL:', import.meta.env.VITE_API_URL);
 const debugLog = (...args) => {
   if (import.meta.env.DEV) console.log(...args);
 };
+const session = sessionStorage;
 
 export const resolveApiImageUrl = (value) => {
   const image = String(value || '').trim();
@@ -33,7 +34,7 @@ const normalizeProduct = (product = {}) => {
 };
 
 const buildHeaders = (body) => {
-  const token = localStorage.getItem('farmycure_token');
+  const token = session.getItem('farmycure_token');
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   return token
     ? { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), Authorization: `Bearer ${token}` }
@@ -94,7 +95,7 @@ const withAutoRefresh = async (input, init = {}) => {
     throw err;
   }
   if (response.status !== 401) return handleResponse(response);
-  const refreshToken = localStorage.getItem('farmycure_refresh_token');
+  const refreshToken = session.getItem('farmycure_refresh_token');
   if (!refreshToken) return handleResponse(response);
   const refreshRes = await fetch(`${BASE_URL}/auth/refresh-token`, {
     method: 'POST',
@@ -104,7 +105,7 @@ const withAutoRefresh = async (input, init = {}) => {
   if (!refreshRes.ok) return handleResponse(response);
   const refreshData = await refreshRes.json();
   if (!refreshData.accessToken) return handleResponse(response);
-  localStorage.setItem('farmycure_token', refreshData.accessToken);
+  session.setItem('farmycure_token', refreshData.accessToken);
   response = await fetch(input, { ...init, headers: buildHeaders(init.body) });
   return handleResponse(response);
 };

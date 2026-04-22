@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- Router alias in app bootstrap */
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, HashRouter } from 'react-router-dom';

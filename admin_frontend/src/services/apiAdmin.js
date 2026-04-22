@@ -3,9 +3,10 @@ const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
 const API = rawApiUrl ? (rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl) : '';
 const API_BASE = API || '';
 console.log('API URL:', import.meta.env.VITE_API_URL);
+const session = sessionStorage;
 
-const getAccessToken = () => localStorage.getItem('farmycure_token');
-const getRefreshToken = () => localStorage.getItem('farmycure_refresh_token');
+const getAccessToken = () => session.getItem('farmycure_token');
+const getRefreshToken = () => session.getItem('farmycure_refresh_token');
 
 const buildAuthHeaders = () => {
   const token = getAccessToken();
@@ -30,12 +31,12 @@ const refreshAccessToken = async () => {
     }
 
     const nextToken = res.data?.accessToken || res.data?.token;
-    if (nextToken) localStorage.setItem('farmycure_token', nextToken);
+    if (nextToken) session.setItem('farmycure_token', nextToken);
     return nextToken;
   } catch (e) {
-    localStorage.removeItem('farmycure_token');
-    localStorage.removeItem('farmycure_refresh_token');
-    localStorage.removeItem('farmycure_user');
+    session.removeItem('farmycure_token');
+    session.removeItem('farmycure_refresh_token');
+    session.removeItem('farmycure_user');
     throw e;
   }
 };
