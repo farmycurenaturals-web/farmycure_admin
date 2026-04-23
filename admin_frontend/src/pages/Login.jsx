@@ -16,8 +16,8 @@ const LeafMark = ({ className = '' }) => (
 const Login = () => {
   const navigate = useNavigate();
   const { setSession } = useAuth();
-  const [username, setUsername] = useState(ADMIN_USERNAME);
-  const [password, setPassword] = useState(ADMIN_PASSWORD);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
