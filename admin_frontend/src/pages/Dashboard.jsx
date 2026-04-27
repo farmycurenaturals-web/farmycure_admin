@@ -15,6 +15,10 @@ const Dashboard = () => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [testEmail, setTestEmail] = useState('');
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState({ type: '', message: '' });
+  const [lastTestEmail, setLastTestEmail] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -60,6 +64,54 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    const loadEmailHealth = async () => {
+      try {
+        const result = await api.getEmailHealth();
+        const message = result?.email?.message || 'Email service status unknown';
+        setEmailStatus({
+          type: result?.status === 'ok' ? 'success' : 'error',
+          message,
+        });
+        setLastTestEmail(result?.lastTestEmail?.sentAt ? result.lastTestEmail : null);
+      } catch (err) {
+        setEmailStatus({
+          type: 'error',
+          message: err.message || 'Unable to verify email service',
+        });
+      }
+    };
+    loadEmailHealth();
+  }, []);
+
+  const handleSendTestEmail = async () => {
+    const to = String(testEmail || '').trim().toLowerCase();
+    if (!to || !to.includes('@')) {
+      setEmailStatus({ type: 'error', message: 'Enter a valid recipient email address' });
+      return;
+    }
+    setSendingTestEmail(true);
+    setEmailStatus({ type: '', message: '' });
+    try {
+      const result = await api.sendTestEmail(to);
+      setEmailStatus({
+        type: 'success',
+        message: `Test email sent to ${result?.to || to}`,
+      });
+      setLastTestEmail({
+        sentAt: result?.sentAt || new Date().toISOString(),
+        to: result?.to || to,
+      });
+    } catch (err) {
+      setEmailStatus({
+        type: 'error',
+        message: err.message || 'Failed to send test email',
+      });
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
 
   const columns = [
     { 
@@ -140,6 +192,41 @@ const Dashboard = () => {
               trend="up" 
               trendValue="1.1%" 
             />
+          </div>
+
+          {/* Recent Orders Section */}
+          <div className="mt-8 rounded-xl border border-gray-200 bg-white p-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Email Delivery Test</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Send a real SMTP test email from admin panel.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                placeholder="Recipient email"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleSendTestEmail}
+                disabled={sendingTestEmail}
+                className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-70"
+              >
+                {sendingTestEmail ? 'Sending...' : 'Send Test Email'}
+              </button>
+            </div>
+            {emailStatus.message && (
+              <p className={`text-sm mt-3 ${emailStatus.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+                {emailStatus.message}
+              </p>
+            )}
+            {lastTestEmail?.sentAt && (
+              <p className="text-xs text-gray-500 mt-2">
+                Last test sent: {new Date(lastTestEmail.sentAt).toLocaleString()} {lastTestEmail.to ? `to ${lastTestEmail.to}` : ''}
+              </p>
+            )}
           </div>
 
           {/* Recent Orders Section */}

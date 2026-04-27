@@ -204,4 +204,13 @@ export const api = {
       headers: buildHeaders({}),
       body: JSON.stringify({ status }),
     }),
+
+  // Email health/testing
+  getEmailHealth: () => withAutoRefresh(`${BASE_URL}/health/email`, { headers: buildHeaders() }),
+  sendTestEmail: (to) =>
+    withAutoRefresh(`${BASE_URL}/health/email/test`, {
+      method: 'POST',
+      headers: buildHeaders({}),
+      body: JSON.stringify({ to }),
+    }),
 };
