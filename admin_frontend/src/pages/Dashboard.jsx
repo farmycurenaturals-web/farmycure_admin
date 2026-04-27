@@ -113,6 +113,11 @@ const Dashboard = () => {
     }
   };
 
+  const getPaymentMethod = (row) => {
+    const value = String(row.paymentMethod || '').trim().toLowerCase();
+    return value === 'cod' ? 'cod' : 'online';
+  };
+
   const columns = [
     { 
       title: 'Order ID', 
@@ -147,6 +152,23 @@ const Dashboard = () => {
       title: 'Status', 
       dataIndex: 'status',
       render: (row) => getStatusBadge(row.orderStatus || row.status || 'Pending')
+    },
+    {
+      title: 'Payment',
+      dataIndex: 'paymentMethod',
+      render: (row) => {
+        const method = getPaymentMethod(row);
+        const isCod = method === 'cod';
+        return (
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              isCod ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+            }`}
+          >
+            {isCod ? 'Cash on Delivery' : 'Online'}
+          </span>
+        );
+      }
     }
   ];
 

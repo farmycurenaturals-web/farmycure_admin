@@ -6,6 +6,7 @@ import { AlertCircle } from 'lucide-react';
 import { formatINR } from '../utils/currency';
 
 const ORDER_STATUSES = ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const PAYMENT_METHODS = ['all', 'online', 'cod'];
 
 /** Map legacy DB values to the current enum for the dropdown. */
 const normalizeOrderStatus = (raw) => {
@@ -27,6 +28,7 @@ const normalizeOrderStatus = (raw) => {
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const [paymentFilter, setPaymentFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -61,6 +63,17 @@ const Orders = () => {
       setTimeout(() => setError(''), 4000);
     }
   };
+
+  const getPaymentMethod = (row) => {
+    const value = String(row.paymentMethod || '').trim().toLowerCase();
+    if (value === 'cod') return 'cod';
+    return 'online';
+  };
+
+  const filteredOrders = orders.filter((row) => {
+    if (paymentFilter === 'all') return true;
+    return getPaymentMethod(row) === paymentFilter;
+  });
 
   const columns = [
     { 
@@ -116,6 +129,23 @@ const Orders = () => {
           </div>
         );
       }
+    },
+    {
+      title: 'Payment',
+      dataIndex: 'paymentMethod',
+      render: (row) => {
+        const method = getPaymentMethod(row);
+        const isCod = method === 'cod';
+        return (
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              isCod ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+            }`}
+          >
+            {isCod ? 'Cash on Delivery' : 'Online'}
+          </span>
+        );
+      }
     }
   ];
 
@@ -138,6 +168,24 @@ const Orders = () => {
         <p className="text-sm text-gray-500 mt-1">Manage customer orders and fulfillments.</p>
       </div>
 
+      <div className="flex items-center gap-3">
+        <label htmlFor="paymentFilter" className="text-sm text-gray-600 font-medium">
+          Payment Method:
+        </label>
+        <select
+          id="paymentFilter"
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+          className="text-sm border border-gray-200 rounded-md px-3 py-2 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+        >
+          {PAYMENT_METHODS.map((method) => (
+            <option key={method} value={method}>
+              {method === 'all' ? 'All' : method === 'cod' ? 'Cash on Delivery' : 'Online'}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
@@ -145,7 +193,7 @@ const Orders = () => {
       ) : (
         <Table 
           columns={columns} 
-          data={orders} 
+          data={filteredOrders} 
           keyExtractor={(row) => row._id || row.id || Math.random().toString()} 
         />
       )}
