@@ -226,8 +226,8 @@ const Categories = () => {
       setFormError('Only image files are allowed');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setFormError('Image must be 2MB or smaller');
+    if (file.size > 10 * 1024 * 1024) {
+      setFormError('Image must be 10MB or smaller');
       return;
     }
     setFormError('');
@@ -346,7 +346,7 @@ const Categories = () => {
                   onChange={handleFileChange}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors"
                 />
-                <p className="text-xs text-gray-500 mt-1">Max size: 2MB. Supported: jpg, png, webp, gif.</p>
+                <p className="text-xs text-gray-500 mt-1">Max size: 10MB. Supported: jpg, png, webp, gif.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
